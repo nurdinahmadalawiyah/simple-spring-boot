@@ -17,5 +17,22 @@ pipeline {
                 echo 'Quality Gate Completed'
             }
         }
+        stage("Send Message to Telegram") {
+            steps {
+                script {
+                    withCredentials([
+                        string(credentialsId: 'telegram-token', varible: 'token'),
+                        string(credentialsId: 'telegram-chat-id', variable: 'chatId')
+                    ]) {
+                        echo "Token: ${token}"
+                        echo "Chat ID: ${chatId}"
+                        def buildStatus = currentBuild.currentResult ?: 'UNKNOWN'
+                        sh "curl -X POST
+                        \"https://api.telegram.org/bot${token}/sendMessage\" -d
+                        \"chat_id=${chatId}\" -d \"text=Build Project ${JOB_NAME} status is ${buildStatus}\""
+                    }
+                }
+            }
+        }
     }
 }
